@@ -1,0 +1,6 @@
+.card_wrapper{
+    display:grid;
+    gap: 5px;
+    background-color: aqua;
+
+}

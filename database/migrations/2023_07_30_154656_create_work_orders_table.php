@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('process_id')->nullable();
             $table->string('job_id')->nullable();
             $table->string('po_number')->nullable();
-            $table->decimal('budget',2)->nullable();
+            $table->decimal('budget',12,2)->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->string('title')->nullable();

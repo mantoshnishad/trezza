@@ -227,6 +227,10 @@
                                         wire:click="deleteConfirmation({{$item->id}},'delete')">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
+                                    <button class="btn text-danger p-0" data-toggle="modal" data-target="#exampleModal"
+                                        wire:click="uploadShow({{$item->id}},'upload')">
+                                        <i class="fas fa-upload"></i>
+                                    </button>
                                 </td>
                             </tr>
 
@@ -257,54 +261,57 @@
                     @if($disabled)
                     <div class="container" style="color:#000">
                         <article class="card">
-                            <header class="card-header">Tracking </header>
-                            <div class="card-body">
-                                <h6>Order ID: OD45345345435</h6>
-                                <article class="card">
-                                    <div class="card-body row">
-                                        <div class="col"> <strong>Estimated Delivery time:</strong>
-                                            <br>29 nov 2019
-                                        </div>
-                                        <div class="col"> <strong>Shipping BY:</strong> <br> BLUEDART, |
-                                            <i class="fa fa-phone"></i> +1598675986
-                                        </div>
-                                        <div class="col"> <strong>Status:</strong> <br> Picked by the
-                                            courier </div>
-                                        <div class="col"> <strong>Tracking #:</strong> <br>
-                                            BD045903594059 </div>
-                                    </div>
-                                </article>
-                                <article class="card">
-                                    <div class="card-body row">
-                                        <div class="col"> <strong>Estimated Delivery time:</strong>
-                                            <br>29 nov 2019
-                                        </div>
-                                        <div class="col"> <strong>Shipping BY:</strong> <br> BLUEDART, |
-                                            <i class="fa fa-phone"></i> +1598675986
-                                        </div>
-                                        <div class="col"> <strong>Status:</strong> <br> Picked by the
-                                            courier </div>
-                                        <div class="col"> <strong>Tracking #:</strong> <br>
-                                            BD045903594059 </div>
-                                    </div>
-                                </article>
+                            <header class="card-header"><h6>Order ID: OD45345345435</h6> </header>
+                            <div class="card-body" style="padding-top: 0px;">
                                 <div class="track">
                                     <div class="step active"> <span class="icon"> <i class="fa fa-check"></i> </span>
                                         <span class="text">Order confirmed</span>
                                     </div>
-                                    <div class="step active"> <span class="icon"> <i class="fa fa-user"></i> </span>
+                                    <div class="step active"> <span class="icon"> <i class="fa fa-cog"></i> </span>
                                         <span class="text">
-                                            Picked by courier</span>
+                                     Working</span>
                                     </div>
-                                    <div class="step"> <span class="icon"> <i class="fa fa-truck"></i>
-                                        </span> <span class="text"> On the way </span> </div>
+                                    <div class="step"> <span class="icon"> <i class="fa fa-users"></i>
+                                        </span> <span class="text"> Quality Cheking </span> </div>
                                     <div class="step"> <span class="icon"> <i class="fa fa-box"></i>
-                                        </span> <span class="text">Ready for pickup</span> </div>
+                                        </span> <span class="text">Ready</span> </div>
                                 </div>
+                                <article class="card">
+                                    <div class="card-body row">
+                                        <div class="col-lg-9">
+                                            <div>
+                                                <h5>{{$workorder->title}}</h5>
+                                                <p>
+                                                    {{$workorder->info}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <a href="{{ asset('storage/'.$workorder->image) }}" target="_blank" rel="noopener noreferrer">
+                                            <img style="width: 100px; float: right;" src="{{ asset('storage/'.$workorder->image) }}">
+                                        </a>
+                                        </div>
+                                    </div>
+                                </article>
+                                <article class="card">
+                                    <div class="card-body row">
+                                        <div class="col"> <strong>Estimated Delivery time:</strong>
+                                            <br>29 nov 2019
+                                        </div>
+                                        <div class="col"> <strong>Shipping BY:</strong> <br> BLUEDART, |
+                                            <i class="fa fa-phone"></i> +1598675986
+                                        </div>
+                                        <div class="col"> <strong>Status:</strong> <br> Picked by the
+                                            courier </div>
+                                        <div class="col"> <strong>Tracking #:</strong> <br>
+                                            BD045903594059 </div>
+                                    </div>
+                                </article>
+                                
                             </div>
                         </article>
                     </div>
-                    @elseif($delete!='delete')
+                    @elseif($delete!='delete' && $action!='upload')
                     <div class="card p-2">
                     <div class="row pb-3 ">
                         <div class="col-lg-3">
@@ -425,11 +432,32 @@
                             @if ($image)
                             Photo Preview:
                             <img style="width: 200px;" src="{{ $image->temporaryUrl() }}">
+                            @else
+                            @if($image_edit)
+                            <img style="width: 200px;" src="{{ asset('storage/'.$image_edit) }}">
+                            @endif
                             @endif
                             
                         </div>
                     </div>
-                </div>
+                    </div>
+                    @elseif($action=='upload')
+                    <div class="container" style="color:#000">
+                        <article class="card">
+                            <header class="card-header"><h6>Order ID: OD45345345435</h6> </header>
+                            <div class="card-body" style="padding-top: 0px;">
+                                <input wire:model="upload_images" type="file" multiple class="form-control" >
+                                <div>
+                                    @if(count($upload_images)>0)
+                                    @foreach ($upload_images as $item)
+                                    <img style="width: 200px" src="{{ $item->temporaryUrl() }}">
+                                    @endforeach
+                                    @endif
+                                </div>
+                            </div>
+
+                        </article>
+                    </div>
                     @else
                     <span class="text-danger"> Are you sure to delete this employee?</span>
                     @endif
@@ -441,8 +469,13 @@
                     <button type="button" wire:click.prevent="delete()" data-dismiss="modal"
                         class="btn btn-danger close-modal">Delete</button>
                     @elseif($workorder_id)
+                    @if($action)
+                    <button type="button" wire:click.prevent="upload()"
+                        class="btn btn-primary close-modal">upload</button>
+                    @else
                     <button type="button" wire:click.prevent="update()"
                         class="btn btn-primary close-modal">Update</button>
+                        @endif
                     @else
                     <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Save</button>
                     @endif

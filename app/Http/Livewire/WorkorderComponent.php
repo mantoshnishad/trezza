@@ -3,8 +3,11 @@
 namespace App\Http\Livewire;
 
 use App\Models\Employee;
+use App\Models\OrderImage;
 use App\Models\OrderStatus;
 use App\Models\WorkOrder;
+use App\Models\WorkOrderAssign;
+use App\Models\WorkOrderUpload;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -35,6 +38,10 @@ class WorkorderComponent extends Component
     public $po_number;
     public $budget;
     public $employee_id;
+    public $image_edit;
+    public $workorder;
+    public $action;
+    public $upload_images=[];
 
 
     protected $listeners = [
@@ -76,6 +83,7 @@ class WorkorderComponent extends Component
         $this->po_number = null;
         $this->budget = null;
         $this->disabled = null;
+        $this->image_edit = null;
     }
 
     public function search()
@@ -97,7 +105,7 @@ class WorkorderComponent extends Component
         {
            
             $image = $this->image->getClientOriginalName();
-            $filename = $this->image->storeAs('public/images/workorder/'.$image ,'public');
+            $filename = $this->image->storeAs('images/workorder',$image);
         }
       $workorder =  WorkOrder::create([
             'customer_id' => $this->customer_id,
@@ -108,10 +116,19 @@ class WorkorderComponent extends Component
             'end_date' => $this->end_date,
             'title' => $this->title,
             'info' => $this->info,
-             'po_number' => $this->po_number,
-              'budget' => $this->budget,
-            'created_by' => Auth::user()->id
+            'po_number' => $this->po_number,
+            'budget' => $this->budget,
+            'created_by' => Auth::user()->id,
+            'status_id' => 1,
         ]);
+        if($this->employee_id)
+        {
+            WorkOrderAssign::create([
+                'work_order_id' => $workorder->id,
+                'employee_id' => $this->employee_id,
+                'created_by' => Auth::id(),
+            ]);
+        }
         OrderStatus::create([
             'work_order_id' => $workorder->id,
             'status_id' => 1,
@@ -126,6 +143,7 @@ class WorkorderComponent extends Component
         $this->delete = null;
         $this->workorder_id = $id;
         $workorder = WorkOrder::find($id);
+        $assign = WorkOrderAssign::where('work_order_id',$id)->first();
         $this->customer_id = $workorder->customer_id;
         $this->process_id = $workorder->process_id;
         $this->job_id = $workorder->job_id;
@@ -133,16 +151,29 @@ class WorkorderComponent extends Component
         $this->end_date = $workorder->end_date;
         $this->title = $workorder->title;
         $this->info = $workorder->info;
-           $this->po_number = $workorder->po_number;
+        $this->po_number = $workorder->po_number;
         $this->budget = $workorder->budget;
         $this->disabled = null;
+        if($assign)
+        {
+            $this->employee_id=$assign->employee_id;
+        }
 
-        // $this->image = $workorder->image;
+        $this->image_edit = $workorder->image;
         // $this->emit('childRefresh', $this->workorder_id);
     }
 
     public function update()
     {
+        $filename=null;
+        if($this->image)
+        {
+            $image = $this->image->getClientOriginalName();
+            $filename = $this->image->storeAs('images/workorder',$image);
+        }
+        else{
+            $filename=$this->image_edit;
+        }
         WorkOrder::find($this->workorder_id)->update([
             'customer_id' => $this->customer_id,
             'process_id' => $this->process_id,
@@ -154,11 +185,23 @@ class WorkorderComponent extends Component
             'info' => $this->info,
             'po_number' => $this->po_number,
               'budget' => $this->budget,
+              'image' => $filename  ,
+              'status_id' => 1,
             'updated_by' => Auth::user()->id
         ]);
+
+        if($this->employee_id)
+        {
+            WorkOrderAssign::create([
+                'work_order_id' => $this->workorder_id,
+                'employee_id' => $this->employee_id,
+                'created_by' => Auth::id(),
+            ]);
+        }
+
         OrderStatus::create([
             'work_order_id' => $this->workorder_id,
-            'work_order_id' => 1,
+            'status_id' => 1,
             'updated_by' => Auth::user()->id
         ]);
         $this->dispatchBrowserEvent('livewireUpdated');
@@ -168,8 +211,39 @@ class WorkorderComponent extends Component
     {
         $this->delete = null;
         $this->workorder_id = $id;
-        $employee = WorkOrder::find($id);
+        $this->workorder = WorkOrder::find($id);
         $this->disabled = $disabled;
+    }
+
+    function uploadShow($id,$action) {
+        $this->delete = null;
+        $this->workorder_id = $id;
+        $this->action = $action;
+        $this->workorder = WorkOrder::find($id);
+        $this->disabled = null;
+    }
+
+    function upload() {
+        $assign = WorkOrderAssign::where('work_order_id',$this->workorder_id)->first();
+       $upload= WorkOrderUpload::create([
+            'work_order_id' => $this->workorder_id,
+            'work_order_assign_id' => $assign->id,
+            'for_approver_approval' => true,
+            'employee_id' => $assign->employee_id,
+            'status_id' => 3,
+        ]);
+        foreach($this->upload_images as $image)
+        {
+            $image_name = time().$image->getClientOriginalName();
+            $filename = $image->storeAs('images/workorder',$image_name);
+            OrderImage::create([
+                'work_order_id' => $this->workorder_id,
+                'work_order_assign_id' => $assign->id,
+                'work_order_upload_id' => $upload->id,
+                'image' => $filename,
+            ]);
+        }
+        $this->dispatchBrowserEvent('livewireUpdated');
     }
 
     public function deleteConfirmation($id, $delete)

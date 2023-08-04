@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
-class WorkOrderUpload extends Model
+class ApprovalStatus extends Model
 {
     use HasFactory;
 
@@ -18,9 +18,5 @@ class WorkOrderUpload extends Model
         $this->deleted_by = Auth::user()->id;
         $this->save();
         return parent::delete();
-    }
-
-    function images() {
-        return $this->hasMany(OrderImage::class,'work_order_upload_id');
     }
 }

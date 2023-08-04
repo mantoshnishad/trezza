@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\ApprovalStatus;
 use App\Models\Employee;
 use App\Models\OrderImage;
 use App\Models\OrderStatus;
@@ -42,6 +43,9 @@ class WorkorderComponent extends Component
     public $workorder;
     public $action;
     public $upload_images=[];
+    public $approved_statuses=[];
+    public $approval_status_text;
+    public $status_text;
 
 
     protected $listeners = [
@@ -105,7 +109,7 @@ class WorkorderComponent extends Component
         {
            
             $image = $this->image->getClientOriginalName();
-            $filename = $this->image->storeAs('images/workorder',$image);
+            $filename = $this->image->storeAs('images/workorder',$image,'public');
         }
       $workorder =  WorkOrder::create([
             'customer_id' => $this->customer_id,
@@ -169,7 +173,7 @@ class WorkorderComponent extends Component
         if($this->image)
         {
             $image = $this->image->getClientOriginalName();
-            $filename = $this->image->storeAs('images/workorder',$image);
+            $filename = $this->image->storeAs('images/workorder',$image,'public');
         }
         else{
             $filename=$this->image_edit;
@@ -212,6 +216,7 @@ class WorkorderComponent extends Component
         $this->delete = null;
         $this->workorder_id = $id;
         $this->workorder = WorkOrder::find($id);
+        $this->approved_statuses = ApprovalStatus::all();
         $this->disabled = $disabled;
     }
 
@@ -235,7 +240,7 @@ class WorkorderComponent extends Component
         foreach($this->upload_images as $image)
         {
             $image_name = time().$image->getClientOriginalName();
-            $filename = $image->storeAs('images/workorder',$image_name);
+            $filename = $image->storeAs('images/workorder',$image_name,'public');
             OrderImage::create([
                 'work_order_id' => $this->workorder_id,
                 'work_order_assign_id' => $assign->id,

@@ -25,7 +25,8 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->string('image')->nullable();
             $table->text('info')->nullable();
-            $table->text('status_id')->nullable();
+            $table->unsignedBigInteger('status_id')->nullable();
+            $table->unsignedBigInteger('approval_status_id')->nullable();
             $table->boolean('is_closed')->default(false);
             
 

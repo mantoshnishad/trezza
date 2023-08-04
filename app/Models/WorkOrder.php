@@ -36,4 +36,24 @@ class WorkOrder extends Model
     function statuses() {
         return $this->belongsToMany(Status::class,'order_statuses');
     }
+
+    function status() {
+        return $this->belongsTo(Status::class,'status_id');
+    }
+    
+    function approvalStatus() {
+        return $this->belongsTo(ApprovalStatus::class,'approval_status_id');
+    }
+
+    function assign() {
+        return $this->hasOne(WorkOrderAssign::class,'work_order_id')->orderBy('created_at','desc');
+    }
+
+    function uploads() {
+        return $this->hasMany(WorkOrderUpload::class,'work_order_id')->orderBy('created_at','desc');
+    }
+
+    function upload() {
+        return $this->hasOne(WorkOrderUpload::class,'work_order_id')->orderBy('created_at','desc');
+    }
 }

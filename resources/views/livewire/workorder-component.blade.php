@@ -8,7 +8,7 @@
         }
 
         .container {
-            margin-top: 50px;
+            margin-top: 0px;
             margin-bottom: 50px
         }
 
@@ -198,6 +198,9 @@
                                 <th wire:click="sort('user_id')" style="cursor: pointer">End Date <i
                                         class="fas fa-sort"></i>
                                 </th>
+                                <th wire:click="sort('user_id')" style="cursor: pointer">Status <i
+                                    class="fas fa-sort"></i>
+                            </th>
                                 <th>Action <button wire:click="add" type="button" data-toggle="modal"
                                         data-target="#exampleModal" class="btn text-lg p-0 m-0"> <i
                                             class="fas fa-plus-square"></i>
@@ -214,6 +217,7 @@
                                 <td>{{$item->process->name ?? ""}}</td>
                                 <td>{{$item->start_date ?? ""}}</td>
                                 <td>{{$item->end_date ?? ""}}</td>
+                                <td>{{$item->status->name ?? "Open"}}({{$item->approvalStatus->name ?? "Upload Pending"}})</td>
                                 <td>
                                     <button class="btn text-success p-0" wire:click="edit({{$item->id}})"
                                         data-toggle="modal" data-target="#exampleModal">
@@ -277,37 +281,60 @@
                                         </span> <span class="text">Ready</span> </div>
                                 </div>
                                 <article class="card">
-                                    <div class="card-body row">
-                                        <div class="col-lg-9">
+                                    <div class="card-body">
+                                        
                                             <div>
                                                 <h5>{{$workorder->title}}</h5>
                                                 <p>
                                                     {{$workorder->info}}
                                                 </p>
                                             </div>
-                                        </div>
-                                        <div class="col-lg-3">
-                                            <a href="{{ asset('storage/'.$workorder->image) }}" target="_blank" rel="noopener noreferrer">
-                                            <img style="width: 100px; float: right;" src="{{ asset('storage/'.$workorder->image) }}">
-                                        </a>
-                                        </div>
+                                        
+                                       
                                     </div>
                                 </article>
+                                @if($workorder->upload)
                                 <article class="card">
-                                    <div class="card-body row">
-                                        <div class="col"> <strong>Estimated Delivery time:</strong>
-                                            <br>29 nov 2019
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-lg-2">
+                                                <h6>Ref Image</h6>
+                                                <a href="{{ asset('storage/'.$workorder->image) }}" target="_blank" rel="noopener noreferrer">
+                                                <img style="width: 100%; float: right;" src="{{ asset('storage/'.$workorder->image) }}">
+                                            </a>
+                                            </div>
+                                            @foreach ($workorder->upload->images as $item)
+                                            <div class="col-lg-2">
+                                                <h6>Sample {{$loop->iteration}}</h6>
+                                                <a href="{{ asset('storage/'.$item->image) }}" target="_blank" rel="noopener noreferrer">
+                                                    <img style="width: 100%;" src="{{ asset('storage/'.$item->image) }}">
+                                                </a>
+                                            </div>
+                                            @endforeach
                                         </div>
-                                        <div class="col"> <strong>Shipping BY:</strong> <br> BLUEDART, |
-                                            <i class="fa fa-phone"></i> +1598675986
+                                        <hr>
+                                       <div class="row my-2">
+                                        <div class="col-lg-12">
+                                            <h5>Comment :</h5>
+                                            <textarea class="form-control"></textarea>
                                         </div>
-                                        <div class="col"> <strong>Status:</strong> <br> Picked by the
-                                            courier </div>
-                                        <div class="col"> <strong>Tracking #:</strong> <br>
-                                            BD045903594059 </div>
+                                       </div>
+                                        <div class="row">
+                                            <div class="col-lg-3">
+                                                <select name="" id="" class="form-control">
+                                                    <option value="">Select</option>
+                                                    @foreach ($approved_statuses as $item)
+                                                    <option value="{{$item->id}}">{{$item->name}}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-3">
+                                                <button class="btn btn-primary">Send</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </article>
-                                
+                                @endif
                             </div>
                         </article>
                     </div>
@@ -369,12 +396,6 @@
                             @enderror
                         </div>
                         <div class="col-lg-3">
-                            {{-- <label for="floatingInput" class="my-0" style="font-weight: 600">Order Date</label>
-                            <input type="date" placeholder="Order Date" class="form-control" {{$disabled}}
-                                wire:model="start_date" >
-                            @error('start_date')
-                            <span style="color:red">{{$message}}</span>
-                            @enderror --}}
                             <label for="floatingInput" class="my-0" style="font-weight: 600">Assign to</label>
                             @livewire('component.search-component',
                             [
@@ -406,8 +427,27 @@
                                 <span style="color:red">{{$message}}</span>
                                 @enderror
                         </div>
+                        <div class="col-lg-3">
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Start Date</label>
+                            <input type="date" placeholder="Start Date" class="form-control" {{$disabled}}
+                                wire:model="start_date" >
+                            @error('start_date')
+                            <span style="color:red">{{$message}}</span>
+                            @enderror
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Status</label>
+                            <input type="text" placeholder="Status" class="form-control" disabled
+                                wire:model="status_text" >
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Approval Status</label>
+                            <input type="text" placeholder="Approval Status" class="form-control" disabled
+                                wire:model="approval_status_text" >
+                        </div>
                         <div class="col-lg-9">
                             <div class="row">
+                                
                                 <div class="col-lg-12">
                                     <label for="floatingInput" class="my-0" style="font-weight: 600">Title</label>
                                     <input type="text" placeholder="Title" class="form-control" {{$disabled}}

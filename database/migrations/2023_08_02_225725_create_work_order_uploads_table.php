@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('for_customer_approval')->default(false);
             $table->boolean('is_closed')->default(false);
             $table->unsignedBigInteger('status_id')->nullable();
+            $table->unsignedBigInteger('approval_status_id')->nullable();
             $table->unsignedBigInteger('employee_id');
             
 

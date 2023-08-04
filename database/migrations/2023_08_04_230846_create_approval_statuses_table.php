@@ -13,13 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('work_order_assigns', function (Blueprint $table) {
+        Schema::create('approval_statuses', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('work_order_id');
-            $table->unsignedBigInteger('employee_id');
-            $table->boolean('is_closed')->default(false);
-            $table->unsignedBigInteger('status_id')->nullable();
-            $table->unsignedBigInteger('approval_status_id')->nullable();
+            $table->string('name');
+            
 
             $table->integer('created_by')->nullable();
             $table->integer('updated_by')->nullable();
@@ -36,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('work_order_assigns');
+        Schema::dropIfExists('approval_statuses');
     }
 };

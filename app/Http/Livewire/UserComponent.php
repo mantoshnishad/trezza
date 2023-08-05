@@ -100,10 +100,10 @@ class UserComponent extends Component
             'email_verified_at' => $this->email_verified_at,
             'password' => Hash::make($this->password),
             'remember_token' => $this->remember_token,
-            'emp_code' => $this->emp_code,
-            'profile_photo_path' => $this->profile_photo_path,
-            'employee_id' => $this->employee_id,
-            'role_id' => $this->role_id,
+            // 'emp_code' => $this->emp_code,
+            // 'profile_photo_path' => $this->profile_photo_path,
+            // 'employee_id' => $this->employee_id,
+            // 'role_id' => $this->role_id,
             'created_by' => Auth::user()->id,
         ]);
 

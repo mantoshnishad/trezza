@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\ApprovalStatus;
 use App\Models\Employee;
+use App\Models\OrderComment;
 use App\Models\OrderImage;
 use App\Models\OrderStatus;
 use App\Models\WorkOrder;
@@ -46,6 +47,8 @@ class WorkorderComponent extends Component
     public $approved_statuses=[];
     public $approval_status_text;
     public $status_text;
+    public $approval_comment;
+    public $approval_status_id;
 
 
     protected $listeners = [
@@ -249,6 +252,27 @@ class WorkorderComponent extends Component
             ]);
         }
         $this->dispatchBrowserEvent('livewireUpdated');
+    }
+
+    function approvalSend($id) {
+        WorkOrderUpload::find($id)->update([
+            'approval_status_id' => $this->approval_status_id,
+            'for_customer_approval' => $this->approval_status_id==3 ? true : false,
+        ]);
+        WorkOrder::find($this->workorder_id)->update([
+            'approval_status_id' => $this->approval_status_id,
+        ]);
+        if(strlen($this->approval_comment)>0)
+        {
+            OrderComment::create([
+                'work_order_id' => $this->workorder_id,
+                'work_order_upload_id' => $id,
+                'user_id' => Auth::id(),
+                'comment' => $this->approval_comment,
+                'attachment' => null,
+            ]);
+        }
+        
     }
 
     public function deleteConfirmation($id, $delete)

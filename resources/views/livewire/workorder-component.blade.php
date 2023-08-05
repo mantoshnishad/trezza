@@ -316,12 +316,12 @@
                                        <div class="row my-2">
                                         <div class="col-lg-12">
                                             <h5>Comment :</h5>
-                                            <textarea class="form-control"></textarea>
+                                            <textarea wire:model="approval_comment" class="form-control"></textarea>
                                         </div>
                                        </div>
                                         <div class="row">
                                             <div class="col-lg-3">
-                                                <select name="" id="" class="form-control">
+                                                <select wire:model="approval_status_id" class="form-control">
                                                     <option value="">Select</option>
                                                     @foreach ($approved_statuses as $item)
                                                     <option value="{{$item->id}}">{{$item->name}}</option>
@@ -329,7 +329,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-lg-3">
-                                                <button class="btn btn-primary">Send</button>
+                                                <button wire:click="approvalSend({{$workorder->upload->id}})" class="btn btn-primary">Send</button>
                                             </div>
                                         </div>
                                     </div>

@@ -109,6 +109,19 @@
                             <span style="color:red">{{$message}}</span>
                             @enderror
                         </div>
+                        <div class="col-3">
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Select {{$this->table}}</label>
+                            @livewire('component.search-component',
+                            [
+                            'table_name'=> $this->table,
+                            'table_search_column'=> $this->search_column,
+                            'name' => 'table_id',
+                            'table_default_value' => $table_id,
+                            ],key('table'.$this->table))
+                            @error('table_id')
+                            <span style="color:red">{{$message}}</span>
+                            @enderror
+                        </div>
                         {{-- <div class="col-lg-3">
                             <label for="floatingInput" class="my-0" style="font-weight: 600">USER</label>
                             <select class="col-lg rounded text-md my-0" aria-label="Default select example"

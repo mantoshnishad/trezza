@@ -24,13 +24,17 @@
                     <table class="table table-hover text-nowrap">
                         <thead>
                             <tr>
-                                <th wire:click="sort('role_id')" style="cursor: pointer">Name <i class="fas fa-sort"></i>
-                                </th>
                                 <th wire:click="sort('user_id')" style="cursor: pointer">Code <i class="fas fa-sort"></i>
+                                </th>
+                                <th wire:click="sort('role_id')" style="cursor: pointer">Name <i class="fas fa-sort"></i>
                                 </th>
                                 <th wire:click="sort('user_id')" style="cursor: pointer">Email <i class="fas fa-sort"></i>
                                 </th>
-                                <th wire:click="sort('user_id')" style="cursor: pointer">Profile <i class="fas fa-sort"></i>
+                                <th wire:click="sort('user_id')" style="cursor: pointer">Address <i class="fas fa-sort"></i>
+                                </th>
+                                <th wire:click="sort('user_id')" style="cursor: pointer">Contact <i class="fas fa-sort"></i>
+                                </th>
+                                <th wire:click="sort('user_id')" style="cursor: pointer">User ID <i class="fas fa-sort"></i>
                                 </th>
                                 <th>Action <button wire:click="add" type="button" data-toggle="modal"
                                         data-target="#exampleModal" class="btn text-lg p-0 m-0"> <i
@@ -48,6 +52,7 @@
                                 <td>{{$item->email ?? ""}}</td>
                                 <td>{{$item->address ?? ""}}</td>
                                 <td>{{$item->alternate_contact ?? ""}}</td>
+                                <td>{{$item->user_id ?? ""}}</td>
                                 <td>
                                     <button class="btn text-success p-0" wire:click="edit({{$item->id}})"
                                         data-toggle="modal" data-target="#exampleModal">

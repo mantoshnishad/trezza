@@ -4,7 +4,9 @@ namespace App\Http\Livewire;
 
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -80,12 +82,20 @@ class CustomerComponent extends Component
             'email.required' => 'Require',
             'phone.required' => 'Require',
         ]);
+
+      $user=  User::find($this->user_id)->update([
+            'name' => $this->name,
+            'email' => $this->email,
+            'password' => Hash::make($this->code),
+            'updated_by' => Auth::user()->id,
+        ]);
         Customer::create([
             'name' => $this->name,
             'code' => $this->code,
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
+            'user_id' => $user->id,
             'alternate_contact' => $this->alternate_contact,
             'created_by' => Auth::user()->id
         ]);

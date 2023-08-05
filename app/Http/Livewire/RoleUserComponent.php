@@ -24,6 +24,9 @@ class RoleUserComponent extends Component
     public $role_user_id;
     public $roles=[];
     public $users=[];
+    public $table;
+    public $table_id;
+    public $search_column;
 
 
 
@@ -34,6 +37,7 @@ class RoleUserComponent extends Component
     public function getTableId($table_id, $column_code)
     {
         $this->$column_code = $table_id;
+       
     }
 
     public function sort($column)
@@ -48,7 +52,19 @@ class RoleUserComponent extends Component
         $this->users = User::all();
     }
 
-
+function updatedRoleId() {
+    if($this->role_id==2)
+    {
+        $this->table='customers';
+        $this->search_column='name';
+        
+    }
+    else
+    {
+        $this->table='employees';
+        $this->search_column='name';
+    }
+}
 
 
     public function add()

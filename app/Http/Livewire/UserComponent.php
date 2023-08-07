@@ -141,7 +141,7 @@ class UserComponent extends Component
             'name' => $this->name,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,
-            'password' => $this->password,
+            'password' => Hash::make($this->password),
             'remember_token' => $this->remember_token,
             // 'emp_code' => $this->emp_code,
             // 'profile_photo_path' => $this->profile_photo_path,

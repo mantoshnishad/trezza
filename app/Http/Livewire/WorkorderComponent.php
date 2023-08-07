@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\OrderComment;
 use App\Models\OrderImage;
 use App\Models\OrderStatus;
+use App\Models\User;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderAssign;
 use App\Models\WorkOrderUpload;
@@ -297,6 +298,8 @@ class WorkorderComponent extends Component
     {
 
         // dd(WorkOrder::first()->status());
+        $role=User::find(Auth::id())->roles()->first();
+        $customer_id = $role->pivot->table_id ?? null;
         $table = new WorkOrder();
         $columns = $table->getTableColumns('role_user');
         return view('livewire.workorder-component', [
@@ -304,6 +307,10 @@ class WorkorderComponent extends Component
                 foreach ($columns as $column) {
                     $q->orWhere($column, 'LIKE', $this->search . '%');
                 }
+            })
+            ->when($role->id==2,function($query)use($customer_id){
+                $query->where('customer_id',$customer_id);
+                
             })
                 ->orderBy($this->sort_column, $this->sort)
                 ->paginate(15),

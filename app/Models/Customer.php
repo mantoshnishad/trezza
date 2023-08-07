@@ -24,4 +24,8 @@ class Customer extends Model
     {
         return Schema::getColumnListing($table);
     }
+
+    function user() {
+        return $this->belongsTo(User::class);
+    }
 }

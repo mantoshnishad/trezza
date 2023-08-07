@@ -52,7 +52,7 @@ class RouteAccess
                 in_array($request->path(),$frontend_urls)
                 ) {
                 
-                return $request->is('register') ? abort(403, 'Unauthorized access.') : $next($request);
+                return  $next($request);
             } elseif (Auth::check()) {               
                 if (str_contains($request->path(), 'livewire/message')) {
                     return $next($request);

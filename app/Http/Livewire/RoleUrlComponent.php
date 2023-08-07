@@ -4,7 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Role;
 use App\Models\RoleUrl;
-use App\Models\url;
+use App\Models\Url;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -46,7 +46,7 @@ class RoleUrlComponent extends Component
     public function mount()
     {
         $this->roles = Role::all();
-        $this->urls = url::all();
+        $this->urls = Url::all();
     }
 
 
@@ -121,7 +121,7 @@ class RoleUrlComponent extends Component
 
     public function delete()
     {
-        url::find($this->url_id)->delete();
+        // url::find($this->url_id)->delete();
         $this->url_id = null;
         $this->delete = null;
     }

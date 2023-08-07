@@ -67,5 +67,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class,'role_id');
     }
+
+    function customer() {
+        return $this->hasOne(customer::class);
+    }
    
 }

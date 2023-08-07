@@ -61,7 +61,7 @@ Route::get('update-url', function () {
 
 Auth::routes();
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index']);
 Route::get('/add-project', [HomeController::class, 'addProject'])->name('add.project');
 Route::get('/custom-made-jewelry', [HomeController::class, 'customMadeJewelry'])->name('custom.made.jewelry');
 Route::get('/our-services', [HomeController::class, 'ourServices'])->name('our.services');
@@ -81,7 +81,7 @@ Route::get('/upcoming-shows', [HomeController::class, 'upcomingShows'])->name('u
 Route::get('/frontend-register', [HomeController::class, 'frontendRegister'])->name('frontend.register');
 
 Route::group(['prefix' => 'admin'],function(){
-    Route::get('/', [HomeController::class, 'dashboard'])->name('home');
+    Route::get('/', [HomeController::class, 'dashboard'])->name('home')->middleware('auth');
 Route::controller(CustomerController::class)->group(function () {
     Route::get('customers', 'index')->name('customers');
 });

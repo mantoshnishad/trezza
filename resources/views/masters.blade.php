@@ -20,7 +20,7 @@
 </div>
 {{-- <div wire:ignore aria-live="polite" aria-atomic="true"
     style="position: absolute; top:0; right:0; min-height: 200px;" id="tt"> --}}
-    <div wire:ignore class="toast bg-success" style="position: absolute; top: 10px; right: 10px; z-index: 9999;"
+    {{-- <div wire:ignore class="toast bg-success" style="position: absolute; top: 10px; right: 10px; z-index: 9999;"
         data-autohide="true" data-delay="3000">
         <div class="toast-body">
             Updated Successfully...
@@ -28,7 +28,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-    </div>
+    </div> --}}
     {{--
 </div> --}}
 <script>

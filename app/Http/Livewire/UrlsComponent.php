@@ -4,7 +4,7 @@ namespace App\Http\Livewire;
 
 
 
-use App\Models\url;
+use App\Models\Url;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -76,7 +76,7 @@ class UrlsComponent extends Component
             'url_text.required' => 'Require',
             'url.required' => 'Require',
         ]);
-        url::create([
+        Url::create([
             'text' => $this->url_text,
             'url' => $this->url,
             'icon' => $this->icon,
@@ -94,7 +94,7 @@ class UrlsComponent extends Component
     {
         $this->delete = null;
         $this->url_id = $id;
-        $url = url::find($id);
+        $url = Url::find($id);
         $this->url_text = $url->text;
         $this->url = $url->url;
         $this->icon = $url->icon;
@@ -107,7 +107,7 @@ class UrlsComponent extends Component
 
     public function update()
     {
-        url::find($this->url_id)->update([
+        Url::find($this->url_id)->update([
             'text' => $this->url_text,
             'url' => $this->url,
             'icon' => $this->icon,
@@ -124,7 +124,7 @@ class UrlsComponent extends Component
     {
         $this->delete = null;
         $this->url_id = $id;
-        $url = url::find($id);
+        $url = Url::find($id);
         $this->url_text = $url->text;
         $this->url = $url->url;
         $this->icon = $url->icon;
@@ -142,7 +142,7 @@ class UrlsComponent extends Component
 
     public function delete()
     {
-        url::find($this->url_id)->delete();
+        Url::find($this->url_id)->delete();
         $this->url_id = null;
         $this->delete = null;
     }
@@ -155,10 +155,10 @@ class UrlsComponent extends Component
     public function render()
     {
 
-        $table = new url();
+        $table = new Url();
         $columns = $table->getTableColumns('urls');
         return view('livewire.urls-component', [
-            'urls' => url::when($this->search, function ($q) use ($columns) {
+            'urls' => Url::when($this->search, function ($q) use ($columns) {
                 foreach ($columns as $column) {
                     $q->orWhere($column, 'LIKE', $this->search . '%');
                 }

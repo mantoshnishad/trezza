@@ -219,22 +219,28 @@
                                 <td>{{$item->end_date ?? ""}}</td>
                                 <td>{{$item->status->name ?? "Open"}}({{$item->approvalStatus->name ?? "Upload Pending"}})</td>
                                 <td>
+                                    @if($role==1 || $role==4)
                                     <button class="btn text-success p-0" wire:click="edit({{$item->id}})"
                                         data-toggle="modal" data-target="#exampleModal">
                                         <i class="fas fa-user-edit"></i>
                                     </button>
+                                    @endif
                                     <button wire:click="view('disabled',{{$item->id}})" class="btn text-primary p-1"
                                         data-toggle="modal" data-target="#exampleModal">
                                         <i class="fas fa-eye"></i>
                                     </button>
+                                    @if($role==1 || $role==4)
                                     <button class="btn text-danger p-0" data-toggle="modal" data-target="#exampleModal"
                                         wire:click="deleteConfirmation({{$item->id}},'delete')">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
+                                    @endif
+                                    @if($role==3)
                                     <button class="btn text-danger p-0" data-toggle="modal" data-target="#exampleModal"
                                         wire:click="uploadShow({{$item->id}},'upload')">
                                         <i class="fas fa-upload"></i>
                                     </button>
+                                    @endif
                                 </td>
                             </tr>
 
@@ -294,6 +300,7 @@
                                     </div>
                                 </article>
                                 @if($workorder->upload)
+                                @if(($role==2 && $workorder->upload->for_customer_approval) || $role==1 || $role==3 || $role==4)
                                 <article class="card">
                                     <div class="card-body">
                                         <div class="row">
@@ -334,6 +341,7 @@
                                         </div>
                                     </div>
                                 </article>
+                                @endif
                                 @endif
                             </div>
                         </article>

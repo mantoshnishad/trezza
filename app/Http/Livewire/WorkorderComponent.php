@@ -314,6 +314,7 @@ class WorkorderComponent extends Component
             })
                 ->orderBy($this->sort_column, $this->sort)
                 ->paginate(15),
+                'role' => $role->pivot->role_id ?? null,
         ]);
     }
 }

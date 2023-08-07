@@ -49,10 +49,11 @@ class RouteAccess
                 $request->is('login') || 
                 $request->is('register') || 
                 $request->is('logout') || 
+                $request->is('admin') || 
                 in_array($request->path(),$frontend_urls)
                 ) {
                 
-                return  $next($request);
+                return $next($request);
             } elseif (Auth::check()) {               
                 if (str_contains($request->path(), 'livewire/message')) {
                     return $next($request);
@@ -61,7 +62,8 @@ class RouteAccess
                     $roles = User::find(Auth::user()->id)->roles->pluck('id');
                     $url_ids = RoleUrl::whereIn('role_id', $roles)->pluck('url_id');
                     $urls = url::whereIn('id', $url_ids)->orderBy('order_by', 'asc')->get()->pluck('url')->toArray();
-                    $url = $request->path();
+                    $url = str_replace('admin/','',$request->path()) ;
+                    // dd($url,$urls);
                     if (in_array($url, $urls)) {
                         return $next($request);
                     }

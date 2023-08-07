@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
             ->where('deleted_at',null)
                 ->orderBy('created_at', 'asc')
                 ->get();
-                
+                // dd($urls);
             foreach ($menus as $menu) {
                 $arrayMenu = [];
                 if (count($urls->where('menu_id', $menu->id)) > 0) {

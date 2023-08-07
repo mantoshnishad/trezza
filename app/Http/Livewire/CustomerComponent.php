@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\RoleUser;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -83,13 +84,16 @@ class CustomerComponent extends Component
             'phone.required' => 'Require',
         ]);
 
-      $user=  User::find($this->user_id)->update([
+      $user=  User::firstOrCreate([
+        'email' => $this->email,
+      ],[
             'name' => $this->name,
-            'email' => $this->email,
+            
             'password' => Hash::make($this->code),
-            'updated_by' => Auth::user()->id,
         ]);
-        Customer::create([
+      $customer=  Customer::firstOrCreate([
+            'email' => $this->email,
+          ],[
             'name' => $this->name,
             'code' => $this->code,
             'email' => $this->email,
@@ -98,6 +102,12 @@ class CustomerComponent extends Component
             'user_id' => $user->id,
             'alternate_contact' => $this->alternate_contact,
             'created_by' => Auth::user()->id
+        ]);
+
+        RoleUser::create([
+            'role_id'=> 2,
+            'user_id'=> $user->id,
+            'table_id' => $customer->id,
         ]);
 
         $this->dispatchBrowserEvent('livewireUpdated');

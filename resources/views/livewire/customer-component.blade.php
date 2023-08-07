@@ -28,6 +28,8 @@
                                 </th>
                                 <th wire:click="sort('role_id')" style="cursor: pointer">Name <i class="fas fa-sort"></i>
                                 </th>
+                                <th wire:click="sort('role_id')" style="cursor: pointer">Phone <i class="fas fa-sort"></i>
+                                </th>
                                 <th wire:click="sort('user_id')" style="cursor: pointer">Email <i class="fas fa-sort"></i>
                                 </th>
                                 <th wire:click="sort('user_id')" style="cursor: pointer">Address <i class="fas fa-sort"></i>
@@ -52,7 +54,7 @@
                                 <td>{{$item->email ?? ""}}</td>
                                 <td>{{$item->address ?? ""}}</td>
                                 <td>{{$item->alternate_contact ?? ""}}</td>
-                                <td>{{$item->user_id ?? ""}}</td>
+                                <td>{{$item->user->name ?? ""}}</td>
                                 <td>
                                     <button class="btn text-success p-0" wire:click="edit({{$item->id}})"
                                         data-toggle="modal" data-target="#exampleModal">

@@ -41,10 +41,15 @@ class AppServiceProvider extends ServiceProvider
         $events->listen(BuildingMenu::class, function (BuildingMenu $event) {
           
             $urls = [];
-            $menus = Menu::orderBy('order_by', 'asc')->get();
+            $roles = User::find(Auth::user()->id)->roles->pluck('id')->toArray();
+            $menus = Menu::orderBy('order_by', 'asc')
+            ->when(!in_array(1,$roles),function($query){
+                $query->where('id','!=',2);
+            })
+            ->get();
             $urls = url::whereIn('id', 
             RoleUrl::whereIn('role_id', 
-            User::find(Auth::user()->id)->roles->pluck('id')            
+                 $roles       
             )->pluck('url_id'))
             ->where('deleted_at',null)
                 ->orderBy('created_at', 'asc')

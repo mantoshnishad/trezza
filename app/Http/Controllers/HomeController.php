@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Complain;
+use App\Models\User;
+use App\Models\WorkOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,6 +27,7 @@ class HomeController extends Controller
      */
     public function index()
     {
+
         return view('frontend.index');
     }
     public function addProject()
@@ -100,6 +103,72 @@ class HomeController extends Controller
 
     public function dashboard()
     {
-        return view('dashboard');
+        $user = Auth::user();
+        $roles = $user->roles->pluck('id');
+        $role_user_id = $roles->isEmpty() ? 0 : $roles[0];
+        $customerFilter = function ($query) use ($user) {
+            $role = $user->roles->first();
+            $customer_id = $role->pivot->table_id ?? null;
+            return $query->where('customer_id', $customer_id);
+        };
+
+        $employeeFilter = function ($query) use ($user) {
+            $role = $user->roles->first();
+            $employee_id = $role->pivot->table_id ?? null;
+            return $query->whereHas('assign', function ($query) use ($employee_id) {
+                $query->where('employee_id', $employee_id);
+            });
+        };
+        $all_project = WorkOrder::when($role_user_id == 2, $customerFilter)
+            ->when($role_user_id == 3, $employeeFilter)
+            ->distinct('job_id')
+            ->count();
+
+        $live_project = WorkOrder::where('status_id', 1)->when($role_user_id == 2, $customerFilter)
+        ->when($role_user_id == 3, $employeeFilter)
+        ->distinct('job_id')
+        ->count();
+
+        $completed_project = WorkOrder::where('status_id', 2)
+        ->where('process_id',2)
+        ->when($role_user_id == 2, $customerFilter)
+        ->when($role_user_id == 3, $employeeFilter)        
+        ->count();
+
+        $rejected_project = WorkOrder::where('status_id', 4)->when($role_user_id == 2, $customerFilter)
+        ->when($role_user_id == 3, $employeeFilter)
+        ->distinct('job_id')
+        ->count();
+
+        $workorders = WorkOrder::where('status_id', 1)->when($role_user_id == 2, $customerFilter)
+        ->when($role_user_id == 3, $employeeFilter)
+        ->get();
+
+        $data = [
+            'all_project' => $all_project,
+            'live_project' => $live_project,
+            'completed_project' => $completed_project,
+            'rejected_project' => $rejected_project,
+        ];
+
+        return view('dashboard', compact('data', 'workorders'));
+    }
+
+    public function workorder()
+    {
+
+
+        if ($this->component_exists("workorder-component")) {
+            $component = 'workorder';
+            return view('masters', compact('component'));
+        } else {
+            return view('404');
+        }
+    }
+
+    function component_exists($class)
+    {
+        $manifest = app(\Livewire\LivewireComponentsFinder::class)->getManifest();
+        return (bool) array_key_exists($class, $manifest);
     }
 }

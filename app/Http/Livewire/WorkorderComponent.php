@@ -4,14 +4,17 @@ namespace App\Http\Livewire;
 
 use App\Models\ApprovalStatus;
 use App\Models\Employee;
+use App\Models\NumberSequence;
 use App\Models\OrderComment;
 use App\Models\OrderImage;
 use App\Models\OrderStatus;
+use App\Models\Process;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderAssign;
 use App\Models\WorkOrderUpload;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -50,6 +53,11 @@ class WorkorderComponent extends Component
     public $status_text;
     public $approval_comment;
     public $approval_status_id;
+    public $customer_disabled;
+    public $role_id;
+    public $new_process_id;
+    public $processes =[];
+    public $old_workorders=[];
 
 
     protected $listeners = [
@@ -77,8 +85,18 @@ class WorkorderComponent extends Component
 
     public function add()
     {
-        $this->workorder_id = null;
         $this->customer_id = null;
+        $role=User::find(Auth::id())->roles()->first();
+        if($role->id==2)
+        {
+            $this->customer_id = $role->pivot->table_id ?? null;
+            $this->customer_disabled='disabled';
+        }else{
+            $this->customer_disabled=null;
+        }
+       
+        $this->workorder_id = null;
+        
         $this->process_id = null;
         $this->status_id = null;
         $this->job_id = null;
@@ -99,6 +117,28 @@ class WorkorderComponent extends Component
         dd('test');
     }
 
+    public function generateAutoNumber($prefix, $year)
+{
+    return DB::transaction(function () use ($prefix, $year) {
+        $sequence = NumberSequence::lockForUpdate()->firstOrNew(['prefix' => $prefix, 'year' => $year]);
+
+        if ($sequence->exists) {
+            $lastNumber = $sequence->last_number;
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $sequence->prefix = $prefix;
+        $sequence->year = $year;
+        $sequence->last_number = $nextNumber;
+        $sequence->save();
+
+        $formattedNumber = sprintf('%s-%02d-%05d', $prefix, $year % 100, $nextNumber);
+        return $formattedNumber;
+    });
+}
+
     public function store()
     {
         $filename=null;
@@ -109,6 +149,7 @@ class WorkorderComponent extends Component
             'title.required' => 'Require',
             'info.required' => 'Require',
         ]);
+        $job_id = $this->generateAutoNumber('TJ',23);
         if($this->image)
         {
            
@@ -119,7 +160,7 @@ class WorkorderComponent extends Component
             'customer_id' => $this->customer_id,
             'process_id' => $this->process_id,
             'image' => $filename,
-            'job_id' => $this->job_id,
+            'job_id' => $job_id,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'title' => $this->title,
@@ -217,11 +258,30 @@ class WorkorderComponent extends Component
 
     public function view($disabled, $id)
     {
+        $role=User::find(Auth::id())->roles()->first();
+        $this->role_id = $role->id;
         $this->delete = null;
         $this->workorder_id = $id;
         $this->workorder = WorkOrder::find($id);
         $this->approved_statuses = ApprovalStatus::all();
         $this->disabled = $disabled;
+        $this->processes = Process::all();
+        $this->old_workorders = WorkOrder::where('id','!=',$id)->where('job_id',$this->workorder->job_id)->get();
+
+    }
+
+    function createNewProcess($id) {
+        $workorder = WorkOrder::find($id);
+        $workorder_new = $workorder->replicate(['id']);
+        $workorder_new->process_id = $this->new_process_id;
+        $workorder_new->start_date = now();
+        $workorder_new->approval_status_id = null;
+        $workorder_new->save();
+        WorkOrder::find($id)->update([
+            'status_id' => 2,
+            'is_closed'=>1,
+        ]);
+
     }
 
     function uploadShow($id,$action) {
@@ -232,7 +292,13 @@ class WorkorderComponent extends Component
         $this->disabled = null;
     }
 
+    function deleteImg($id,$order_id) {
+        OrderImage::find($id)->delete();
+        $this->workorder = WorkOrder::find($order_id);
+    }
+
     function upload() {
+        // dd($this->upload_images);
         $assign = WorkOrderAssign::where('work_order_id',$this->workorder_id)->first();
        $upload= WorkOrderUpload::create([
             'work_order_id' => $this->workorder_id,
@@ -256,13 +322,28 @@ class WorkorderComponent extends Component
     }
 
     function approvalSend($id) {
-        WorkOrderUpload::find($id)->update([
-            'approval_status_id' => $this->approval_status_id,
-            'for_customer_approval' => $this->approval_status_id==3 ? true : false,
+
+
+        $this->validate([
+            'approval_comment' => 'required',
+        ],[
+            'approval_comment.required' => 'Require'
         ]);
-        WorkOrder::find($this->workorder_id)->update([
-            'approval_status_id' => $this->approval_status_id,
-        ]);
+        if($this->approval_status_id)
+        {
+            $role=User::find(Auth::id())->roles()->first();
+            
+            WorkOrderUpload::find($id)->update([
+                'approval_status_id' => $this->approval_status_id,
+                'for_customer_approval' => $this->approval_status_id==2 && $role->id==2 ? true : false,
+            ]);
+            WorkOrder::find($this->workorder_id)->update([
+                'approval_status_id' => $this->approval_status_id,
+            ]);
+        }
+        
+
+
         if(strlen($this->approval_comment)>0)
         {
             OrderComment::create([
@@ -273,6 +354,7 @@ class WorkorderComponent extends Component
                 'attachment' => null,
             ]);
         }
+        $this->workorder = WorkOrder::find($this->workorder_id);
         
     }
 
@@ -296,9 +378,8 @@ class WorkorderComponent extends Component
 
     public function render()
     {
-
-        // dd(WorkOrder::first()->status());
         $role=User::find(Auth::id())->roles()->first();
+     
         $customer_id = $role->pivot->table_id ?? null;
         $table = new WorkOrder();
         $columns = $table->getTableColumns('role_user');
@@ -312,6 +393,13 @@ class WorkorderComponent extends Component
                 $query->where('customer_id',$customer_id);
                 
             })
+            ->when($role->id==3,function($query)use($customer_id){
+                $query->whereHas('assign',function($query)use($customer_id){
+                    $query->where('employee_id',$customer_id);
+                });
+                
+            })
+            ->where('is_closed',0)
                 ->orderBy($this->sort_column, $this->sort)
                 ->paginate(15),
                 'role' => $role->pivot->role_id ?? null,

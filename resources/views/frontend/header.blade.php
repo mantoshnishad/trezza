@@ -194,11 +194,27 @@
                     <button data-modal-target="medium-modal" data-modal-toggle="medium-modal" type="button"><span class="mr-4"><i class="fa-sharp fa-solid fa-money-bill"></i></span>Metal Prices</button>
                 </div>
                 @auth
+                @php
+                    $roles =App\Models\User::find(Auth::user()->id)->roles->pluck('id');
+                    $role_user_id=0;
+                    if(count($roles)>0)
+                    {
+                        $role_user_id =$roles[0];
+                    }
+                @endphp
+                @if($role_user_id==2)
                 <div>
                     <p><a href="{{asset('add-project')}}"><span class="mr-4"><i class="fa-solid fa-plus"></i></span>Add Project</a></p>
                 </div>
+                @endif
                 <div>
-                    <p><a target="_blank" href="{{asset('admin')}}"><span class="mr-4"><i class="fa-solid fa-plus"></i></span>Dashboard</a></p>
+                    <p><a target="_blank" href="{{asset('auth')}}"><span class="mr-4"><i class="fa-solid fa-plus"></i></span>Dashboard</a></p>
+                </div>
+                <div>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                        <button title="{{Auth::user()->name }}">Logout</button>
+                    </form>
                 </div>
                 @endauth
                 @guest

@@ -56,4 +56,8 @@ class WorkOrder extends Model
     function upload() {
         return $this->hasOne(WorkOrderUpload::class,'work_order_id')->orderBy('created_at','desc');
     }
+
+    function comments() {
+        return $this->hasMany(OrderComment::class,'work_order_id');
+    }
 }

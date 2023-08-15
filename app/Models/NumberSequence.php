@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
-class OrderComment extends Model
+class NumberSequence extends Model
 {
     use HasFactory;
 
@@ -20,7 +20,5 @@ class OrderComment extends Model
         return parent::delete();
     }
 
-    function commentBy() {
-        return $this->belongsTo(User::class,'user_id');
-    }
+    
 }

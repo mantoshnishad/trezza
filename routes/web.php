@@ -80,8 +80,9 @@ Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
 Route::get('/upcoming-shows', [HomeController::class, 'upcomingShows'])->name('upcoming.shows');
 Route::get('/frontend-register', [HomeController::class, 'frontendRegister'])->name('frontend.register');
 
-Route::group(['prefix' => 'admin'],function(){
+Route::group(['prefix' => 'auth'],function(){
     Route::get('/', [HomeController::class, 'dashboard'])->name('home')->middleware('auth');
+    Route::get('/workorder', [HomeController::class, 'workorder'])->name('workorder')->middleware('auth');
 Route::controller(CustomerController::class)->group(function () {
     Route::get('customers', 'index')->name('customers');
 });

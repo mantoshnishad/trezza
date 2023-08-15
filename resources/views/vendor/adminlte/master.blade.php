@@ -192,6 +192,12 @@
         .my-scroll::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+        .sidebar-dark-secondary {
+            background-color: #D16016 !important;
+        }
+        .btn-primary{
+            background-color: #D16016 !important;
+        }
     </style>
 </head>
 
@@ -240,13 +246,13 @@
         });
         });
 
-        document.getElementById('chatContainer').addEventListener('scroll', event => {
-    const {scrollHeight, scrollTop, clientHeight} = event.target;
+//         document.getElementById('chatContainer').addEventListener('scroll', event => {
+//     const {scrollHeight, scrollTop, clientHeight} = event.target;
 
-    if (Math.abs(scrollHeight - clientHeight - scrollTop) < 1) {
-        console.log('scrolled');
-    }
-});
+//     if (Math.abs(scrollHeight - clientHeight - scrollTop) < 1) {
+//         console.log('scrolled');
+//     }
+// });
         
     </script>
     {{-- CUstome code Start --}}

@@ -21,7 +21,11 @@ class RouteAccess
      */
     public function handle(Request $request, Closure $next)
     {
-        // return $next($request);
+        
+        if ($request->header('Accept') === 'text/html+livewire') {
+            return $next($request);
+        }
+        return $next($request);
         $frontend_urls=[
             'add-project',
             'custom-made-jewelry',
@@ -49,7 +53,8 @@ class RouteAccess
                 $request->is('login') || 
                 $request->is('register') || 
                 $request->is('logout') || 
-                $request->is('admin') || 
+                $request->is('auth') || 
+                $request->is('auth/workorder') || 
                 in_array($request->path(),$frontend_urls)
                 ) {
                 
@@ -61,8 +66,9 @@ class RouteAccess
                     $urls = [];
                     $roles = User::find(Auth::user()->id)->roles->pluck('id');
                     $url_ids = RoleUrl::whereIn('role_id', $roles)->pluck('url_id');
+                    
                     $urls = url::whereIn('id', $url_ids)->orderBy('order_by', 'asc')->get()->pluck('url')->toArray();
-                    $url = str_replace('admin/','',$request->path()) ;
+                    $url = str_replace('auth/','',$request->path()) ;
                     // dd($url,$urls);
                     if (in_array($url, $urls)) {
                         return $next($request);

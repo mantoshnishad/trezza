@@ -17,8 +17,6 @@ class MasterController extends Controller
        
         if($this->component_exists($component."-component"))
         {
-          
-
             return view('masters', compact('component'));
         }
         else{

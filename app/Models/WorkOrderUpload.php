@@ -23,4 +23,7 @@ class WorkOrderUpload extends Model
     function images() {
         return $this->hasMany(OrderImage::class,'work_order_upload_id');
     }
+    function comments() {
+        return $this->hasMany(OrderComment::class,'work_order_upload_id');
+    }
 }

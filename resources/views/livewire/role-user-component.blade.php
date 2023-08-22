@@ -104,11 +104,12 @@
                             'table_search_column'=> 'name',
                             'name' => 'user_id',
                             'table_default_value' => $user_id,
-                            ])
+                            ],key('user_id'.$user_id))
                             @error('user_id')
                             <span style="color:red">{{$message}}</span>
                             @enderror
                         </div>
+                        @if($this->table)
                         <div class="col-3">
                             <label for="floatingInput" class="my-0" style="font-weight: 600">Select {{$this->table}}</label>
                             @livewire('component.search-component',
@@ -117,11 +118,12 @@
                             'table_search_column'=> $this->search_column,
                             'name' => 'table_id',
                             'table_default_value' => $table_id,
-                            ],key('table'.$this->table))
+                            ],key('table'.$table.$table_id))
                             @error('table_id')
                             <span style="color:red">{{$message}}</span>
                             @enderror
                         </div>
+                        @endif
                         {{-- <div class="col-lg-3">
                             <label for="floatingInput" class="my-0" style="font-weight: 600">USER</label>
                             <select class="col-lg rounded text-md my-0" aria-label="Default select example"

@@ -3,6 +3,8 @@
 namespace App\Http\Livewire;
 
 use App\Models\Employee;
+use App\Models\EmployeeProcess;
+use App\Models\Process;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -24,6 +26,7 @@ class EmployeeComponent extends Component
     public $profile;
     public $roles=[];
     public $users=[];
+    public $process_id;
 
 
 
@@ -75,13 +78,17 @@ class EmployeeComponent extends Component
             'code.required' => 'Require',
             'email.required' => 'Require',
         ]);
-        Employee::create([
+       $employee = Employee::create([
             'name' => $this->name,
             'code' => $this->code,
             'email' => $this->email,
-            'profile' => $this->profile,
             'created_by' => Auth::user()->id
         ]);
+        EmployeeProcess::create([
+            'employee_id' => $employee->id,
+            'process_id' => $this->process_id,
+        ]);
+
 
         $this->dispatchBrowserEvent('livewireUpdated');
     }
@@ -95,6 +102,8 @@ class EmployeeComponent extends Component
         $this->code = $employee->code;
         $this->email = $employee->email;
         $this->profile = $employee->profile;
+       $process = EmployeeProcess::where('employee_id',$id)->first();
+       $this->process_id = $process->process_id ?? null;
         $this->emit('childRefresh', $this->employee_id);
     }
 
@@ -106,6 +115,11 @@ class EmployeeComponent extends Component
             'email' => $this->email,
             'profile' => $this->profile,
             'updated_by' => Auth::user()->id
+        ]);
+        EmployeeProcess::updateOrCreate([
+            'employee_id'=>$this->employee_id,
+        ],[          
+            'process_id' => $this->process_id,
         ]);
         $this->dispatchBrowserEvent('livewireUpdated');
     }
@@ -119,6 +133,8 @@ class EmployeeComponent extends Component
         $this->code = $employee->code;
         $this->email = $employee->email;
         $this->profile = $employee->profile;
+        $process = EmployeeProcess::where('employee_id',$id)->first();
+        $this->process_id = $process->process_id ?? null;
         $this->disabled = $disabled;
     }
 
@@ -142,7 +158,7 @@ class EmployeeComponent extends Component
 
     public function render()
     {
-
+// dd(Employee::with('process')->get());
         $table = new Employee();
         $columns = $table->getTableColumns('role_user');
         return view('livewire.employee-component', [
@@ -153,6 +169,7 @@ class EmployeeComponent extends Component
             })
                 ->orderBy($this->sort_column, $this->sort)
                 ->paginate(15),
+                'proccesses'=> Process::all(),
         ]);
     }
 }

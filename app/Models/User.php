@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'employee_id',
     ];
 
     /**
@@ -69,7 +70,10 @@ class User extends Authenticatable
     }
 
     function customer() {
-        return $this->hasOne(customer::class);
+        return $this->hasOne(Customer::class);
+    }
+    function employee() {
+        return $this->belongsTo(Employee::class);
     }
    
 }

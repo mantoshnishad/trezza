@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
 
-class Employee extends Model
+class ProjectRefFile extends Model
 {
     use HasFactory;
 
@@ -19,13 +18,5 @@ class Employee extends Model
         $this->deleted_by = Auth::user()->id;
         $this->save();
         return parent::delete();
-    }
-    public function getTableColumns($table)
-    {
-        return Schema::getColumnListing($table);
-    }
-
-    function processes() {
-        return $this->belongsToMany(Process::class,'employee_processes','process_id','employee_id');
     }
 }

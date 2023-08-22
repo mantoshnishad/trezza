@@ -18,6 +18,7 @@ class SearchComponent extends Component
     public $table_search_column1;
     public $name;
     public $table_default_value;
+    public $where_con;
     public $disabled;
     protected $listeners = [
         'childRefresh'
@@ -31,7 +32,7 @@ class SearchComponent extends Component
 
    
 
-    public function mount($table_name, $table_search_column, $name, $table_default_value = null, $table_search_column1 = null,$disabled=null)
+    public function mount($table_name, $table_search_column, $name, $table_default_value = null, $table_search_column1 = null,$disabled=null,$where_con=null)
     {
         $this->table_name = $table_name;
         $this->table_search_column = $table_search_column;
@@ -39,6 +40,7 @@ class SearchComponent extends Component
         $this->name = $name;
         $this->table_default_value = $table_default_value;
         $this->disabled = $disabled;
+        $this->where_con = $where_con;
 
         // $this->reset1();
         if ($table_default_value) {
@@ -103,6 +105,9 @@ class SearchComponent extends Component
     {
         if (strlen($this->query) == 0) {
             $this->contacts = json_decode(json_encode(DB::table($this->table_name)
+            ->when($this->where_con, function ($q) {
+                $q->where('id', $this->where_con);
+            })
                 ->orderBy($this->table_search_column, 'asc')
                 ->take(15)
                 ->get()), true);
@@ -115,6 +120,9 @@ class SearchComponent extends Component
             ->where($this->table_search_column, 'like', '%' . $this->query . '%')
             ->when($this->table_search_column1, function ($q) {
                 $q->orWhere($this->table_search_column1, 'like', '%' . $this->query . '%');
+            })
+            ->when($this->where_con, function ($q) {
+                $q->where('id', $this->where_con);
             })
             ->orderBy($this->table_search_column, 'asc')
             ->take(15)

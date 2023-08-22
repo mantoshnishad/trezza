@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('customer_id')->nullable();
             $table->unsignedBigInteger('process_id')->nullable();
+            $table->unsignedBigInteger('project_id')->nullable();
             $table->string('job_id')->nullable();
             $table->string('po_number')->nullable();
             $table->decimal('budget',12,2)->nullable();

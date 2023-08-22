@@ -2,12 +2,16 @@
 
 namespace App\Http\Livewire;
 
+use App\Mail\AddProject as MailAddProject;
 use App\Models\NumberSequence;
 use App\Models\OrderStatus;
+use App\Models\Project;
+use App\Models\ProjectRefFile;
 use App\Models\User;
 use App\Models\WorkOrder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -20,7 +24,7 @@ class AddProject extends Component
     public $info;
     public $po_number;
     public $budget;
-    public $ref_image;
+    public $ref_images=[];
     public $cad_file;
     public $msg;
 
@@ -62,7 +66,7 @@ class AddProject extends Component
         $this->validate([
             'title' => 'required',
             'info' => 'required',
-            'ref_image' => 'required',
+            'ref_images' => 'required',
             'budget' => 'nullable|numeric',
         ], [
             'title.required' => 'Require',
@@ -70,16 +74,21 @@ class AddProject extends Component
             'ref_image.required' => 'Require',
         ]);
 
-        if($this->ref_image)
-        {
-            $image = time().$this->ref_image->getClientOriginalName();
-            $filename = $this->ref_image->storeAs('images/workorder',$image,'public');
-        }
+      
         $job_id = $this->generateAutoNumber('TJ',23);
-      $workorder =  WorkOrder::create([
-        'job_id' => $job_id,
+        $project = Project::create([
+            'code' => $job_id,
+            'title' => $this->title,
+            'desc' => $this->info,
             'customer_id' => $customer,
-            'image' => $filename,
+            'status_id' => 1,
+            'created_by' => Auth::id(),
+        ]);
+      $workorder =  WorkOrder::create([
+            'project_id' => $project->id,
+            'job_id' => $job_id,
+            'customer_id' => $customer,
+            'image' => null,
             'end_date' => $this->end_date,
             'title' => $this->title,
             'info' => $this->info,
@@ -88,22 +97,44 @@ class AddProject extends Component
             'created_by' => Auth::id(),
             'status_id' => 1,
         ]);
+        foreach($this->ref_images as $ref_image)
+        {
+            $ext = $ref_image->getClientOriginalExtension();
+            $image = $job_id.'_'.time().$ref_image->getClientOriginalName();
+            $filename = $ref_image->storeAs('images/workorder/'.$job_id,$image,'public');
+            ProjectRefFile::create([
+                'project_id' => $project->id,
+                'workorder_id' => $workorder->id,
+                'url'=> $filename,
+                'ext'=> $ext,
+                'created_by' => Auth::id(),
+            ]);
+        }
         
       $status=  OrderStatus::create([
             'work_order_id' => $workorder->id,
             'status_id' => 1,
             'created_by' => Auth::user()->id
         ]);
+
         if($workorder && $status)
         {
-
             $this->msg="Project addedd successfuly...";
         }
-
+        $data=[
+            'job_id' => $job_id,
+            'customer' => $user->name,
+            'title' => $this->title,
+            'info' => $this->info,
+            'po_number' => $this->po_number,
+            'budget' => $this->budget,
+        ];
+        Mail::to('mantoshdnishad@gmail.com')->send(new MailAddProject($data));
         $this->info=null;
         $this->end_date=null;
         $this->po_number=null;
         $this->budget=null;
         $this->title=null;
+        $this->ref_images =[];
     }
 }

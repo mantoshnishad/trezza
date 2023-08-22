@@ -171,4 +171,20 @@ class HomeController extends Controller
         $manifest = app(\Livewire\LivewireComponentsFinder::class)->getManifest();
         return (bool) array_key_exists($class, $manifest);
     }
+
+    public function login(Request $request)
+    {
+        
+        if ($request->ajax()) {
+            $credentials = $request->only('email', 'password');
+
+            if (Auth::attempt($credentials)) {
+                return response()->json(['success' => true]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Invalid credentials'], 401);
+        } else {
+            // Handle the non-Ajax login logic here (if needed)
+        }
+    }
 }

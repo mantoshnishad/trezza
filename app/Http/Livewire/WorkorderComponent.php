@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Mail\AddProject;
 use App\Models\ApprovalStatus;
 use App\Models\Employee;
 use App\Models\NumberSequence;
@@ -9,12 +10,14 @@ use App\Models\OrderComment;
 use App\Models\OrderImage;
 use App\Models\OrderStatus;
 use App\Models\Process;
+use App\Models\ProjectRefFile;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderAssign;
 use App\Models\WorkOrderUpload;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -24,8 +27,8 @@ class WorkorderComponent extends Component
     use WithPagination, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
     public $search;
-    public $sort = "asc";
-    public $sort_column = 'created_at';
+    public $sort = "desc";
+    public $sort_column = 'job_id';
     public $disabled;
     public $delete;
 
@@ -58,6 +61,7 @@ class WorkorderComponent extends Component
     public $new_process_id;
     public $processes =[];
     public $old_workorders=[];
+    public $ref_images=[];
 
 
     protected $listeners = [
@@ -77,7 +81,8 @@ class WorkorderComponent extends Component
 
     public function mount()
     {
-        
+        $role=User::find(Auth::id())->roles()->first();
+        $this->role_id = $role->id;
     }
 
 
@@ -96,7 +101,7 @@ class WorkorderComponent extends Component
         }
        
         $this->workorder_id = null;
-        
+        $this->action = null;        
         $this->process_id = null;
         $this->status_id = null;
         $this->job_id = null;
@@ -187,8 +192,9 @@ class WorkorderComponent extends Component
         $this->dispatchBrowserEvent('livewireUpdated');
     }
 
-    public function edit($id)
+    public function edit($id,$action=null)
     {
+        $this->action=$action;
         $this->delete = null;
         $this->workorder_id = $id;
         $workorder = WorkOrder::find($id);
@@ -197,19 +203,25 @@ class WorkorderComponent extends Component
         $this->process_id = $workorder->process_id;
         $this->job_id = $workorder->job_id;
         $this->start_date = $workorder->start_date;
-        $this->end_date = $workorder->end_date;
+        $this->end_date = $workorder->end_date ? $workorder->end_date  : now();
         $this->title = $workorder->title;
         $this->info = $workorder->info;
         $this->po_number = $workorder->po_number;
         $this->budget = $workorder->budget;
-        $this->disabled = null;
+        if($workorder->created_by==Auth::id())
+        {
+            $this->disabled = null;
+        }else{
+            $this->disabled = 'disabled';
+        }
+        
         if($assign)
         {
             $this->employee_id=$assign->employee_id;
         }
-
         $this->image_edit = $workorder->image;
-        // $this->emit('childRefresh', $this->workorder_id);
+        $this->customer_disabled='disabled';
+        $this->ref_images = ProjectRefFile::where('workorder_id',$id)->get();
     }
 
     public function update()
@@ -253,10 +265,17 @@ class WorkorderComponent extends Component
             'status_id' => 1,
             'updated_by' => Auth::user()->id
         ]);
+        // OrderComment::create([
+        //     'work_order_id' => $this->workorder_id,
+        //     'work_order_upload_id' => $id,
+        //     'user_id' => Auth::id(),
+        //     'comment' => $this->approval_comment,
+        //     'attachment' => null,
+        // ]);
         $this->dispatchBrowserEvent('livewireUpdated');
     }
 
-    public function view($disabled, $id)
+    public function view($disabled, $id,$action)
     {
         $role=User::find(Auth::id())->roles()->first();
         $this->role_id = $role->id;
@@ -267,6 +286,9 @@ class WorkorderComponent extends Component
         $this->disabled = $disabled;
         $this->processes = Process::all();
         $this->old_workorders = WorkOrder::where('id','!=',$id)->where('job_id',$this->workorder->job_id)->get();
+        $this->approval_comment=null;
+        $this->ref_images = ProjectRefFile::where('workorder_id',$id)->get();
+        $this->action=$action;
 
     }
 
@@ -290,6 +312,7 @@ class WorkorderComponent extends Component
         $this->action = $action;
         $this->workorder = WorkOrder::find($id);
         $this->disabled = null;
+        $this->ref_images = ProjectRefFile::where('workorder_id',$id)->get();
     }
 
     function deleteImg($id,$order_id) {
@@ -298,14 +321,18 @@ class WorkorderComponent extends Component
     }
 
     function upload() {
-        // dd($this->upload_images);
         $assign = WorkOrderAssign::where('work_order_id',$this->workorder_id)->first();
+        
        $upload= WorkOrderUpload::create([
             'work_order_id' => $this->workorder_id,
             'work_order_assign_id' => $assign->id,
             'for_approver_approval' => true,
             'employee_id' => $assign->employee_id,
-            'status_id' => 3,
+            'status_id' => 1,
+            'approval_status_id' => 1,
+        ]);
+        WorkOrder::find($this->workorder_id)->update([
+            'approval_status_id' => 1
         ]);
         foreach($this->upload_images as $image)
         {
@@ -316,6 +343,16 @@ class WorkorderComponent extends Component
                 'work_order_assign_id' => $assign->id,
                 'work_order_upload_id' => $upload->id,
                 'image' => $filename,
+            ]);
+        }
+        if(strlen($this->approval_comment)>0)
+        {
+            OrderComment::create([
+                'work_order_id' => $this->workorder_id,
+                'work_order_upload_id' => $upload->id,
+                'user_id' => Auth::id(),
+                'comment' => $this->approval_comment,
+                'attachment' => null,
             ]);
         }
         $this->dispatchBrowserEvent('livewireUpdated');
@@ -355,13 +392,14 @@ class WorkorderComponent extends Component
             ]);
         }
         $this->workorder = WorkOrder::find($this->workorder_id);
-        
+         $this->dispatchBrowserEvent('livewireUpdated');
     }
 
     public function deleteConfirmation($id, $delete)
     {
         $this->workorder_id = $id;
         $this->delete = $delete;
+        $this->action = $delete;
     }
 
     public function delete()
@@ -379,8 +417,8 @@ class WorkorderComponent extends Component
     public function render()
     {
         $role=User::find(Auth::id())->roles()->first();
-     
         $customer_id = $role->pivot->table_id ?? null;
+        // dd($role,$customer_id);
         $table = new WorkOrder();
         $columns = $table->getTableColumns('role_user');
         return view('livewire.workorder-component', [
@@ -390,10 +428,9 @@ class WorkorderComponent extends Component
                 }
             })
             ->when($role->id==2,function($query)use($customer_id){
-                $query->where('customer_id',$customer_id);
-                
+                $query->where('customer_id',$customer_id);                
             })
-            ->when($role->id==3,function($query)use($customer_id){
+            ->when($role->id==3,function($query)use($customer_id){    
                 $query->whereHas('assign',function($query)use($customer_id){
                     $query->where('employee_id',$customer_id);
                 });

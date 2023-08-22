@@ -105,6 +105,7 @@ function updatedRoleId() {
         $role_user = RoleUser::find($id);
         $this->role_id = $role_user->role_id;
         $this->user_id = $role_user->user_id;
+        $this->updatedRoleId();
         $this->emit('childRefresh', $this->user_id);
     }
 

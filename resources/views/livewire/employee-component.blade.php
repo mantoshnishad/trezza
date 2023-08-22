@@ -30,7 +30,7 @@
                                 </th>
                                 <th wire:click="sort('user_id')" style="cursor: pointer">Email <i class="fas fa-sort"></i>
                                 </th>
-                                <th wire:click="sort('user_id')" style="cursor: pointer">Profile <i class="fas fa-sort"></i>
+                                <th wire:click="sort('user_id')" style="cursor: pointer">Process <i class="fas fa-sort"></i>
                                 </th>
                                 <th>Action <button wire:click="add" type="button" data-toggle="modal"
                                         data-target="#exampleModal" class="btn text-lg p-0 m-0"> <i
@@ -45,7 +45,11 @@
                                 <td>{{$item->name ?? ""}}</td>
                                 <td>{{$item->code ?? ""}}</td>
                                 <td>{{$item->email ?? ""}}</td>
-                                <td>{{$item->profile ?? ""}}</td>
+                                <td>
+                                    @foreach ($item->processes as $process)
+                                        {{$process->name}}
+                                    @endforeach
+                                </td>
                                 <td>
                                     <button class="btn text-success p-0" wire:click="edit({{$item->id}})"
                                         data-toggle="modal" data-target="#exampleModal">
@@ -88,7 +92,7 @@
                     @if($delete!='delete')
                     <div class="row pb-3 ">
                         <div class="col-lg-3">
-                            <label for="floatingInput" class="my-0" style="font-weight: 600">Label Color</label>
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Name</label>
                             <input type="text" placeholder="Name" class="col-lg rounded  my-0" {{$disabled}}
                                 wire:model="name" style="outline: 0; padding:4px;border:1px solid black">
                             @error('name')
@@ -96,7 +100,7 @@
                             @enderror
                         </div>
                         <div class="col-lg-3">
-                            <label for="floatingInput" class="my-0" style="font-weight: 600">Label Color</label>
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Code</label>
                             <input type="text" placeholder="Code" class="col-lg rounded  my-0" {{$disabled}}
                                 wire:model="code" style="outline: 0; padding:4px;border:1px solid black">
                             @error('code')
@@ -104,7 +108,7 @@
                             @enderror
                         </div>
                         <div class="col-lg-3">
-                            <label for="floatingInput" class="my-0" style="font-weight: 600">Label Color</label>
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Email</label>
                             <input type="email" placeholder="Email" class="col-lg rounded  my-0" {{$disabled}}
                                 wire:model="email" style="outline: 0; padding:4px;border:1px solid black">
                             @error('email')
@@ -112,13 +116,25 @@
                             @enderror
                         </div>
                         <div class="col-lg-3">
-                            <label for="floatingInput" class="my-0" style="font-weight: 600">Label Color</label>
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Process</label>
+                           <select wire:model="process_id" class="col-lg rounded  my-0">
+                            <option value=""></option>
+                            @foreach ($proccesses as $item)
+                                <option value="{{$item->id}}">{{$item->name}}</option>
+                            @endforeach
+                           </select>
+                            @error('process_id')
+                            <span style="color:red">{{$message}}</span>
+                            @enderror
+                        </div>
+                        {{-- <div class="col-lg-3">
+                            <label for="floatingInput" class="my-0" style="font-weight: 600">Profile</label>
                             <input type="text" placeholder="Profile" class="col-lg rounded  my-0" {{$disabled}}
                                 wire:model="profile" style="outline: 0; padding:4px;border:1px solid black">
                             @error('profile')
                             <span style="color:red">{{$message}}</span>
                             @enderror
-                        </div>
+                        </div> --}}
                     </div>
 
                     @else

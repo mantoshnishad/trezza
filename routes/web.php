@@ -60,9 +60,9 @@ Route::get('update-url', function () {
 });
 
 Auth::routes();
-
+Route::post('/login-custom', [HomeController::class, 'login'])->name('login.custom');
 Route::get('/', [HomeController::class, 'index']);
-Route::get('/add-project', [HomeController::class, 'addProject'])->name('add.project');
+Route::get('/add-project', [HomeController::class, 'addProject'])->name('add.project')->middleware('auth');
 Route::get('/custom-made-jewelry', [HomeController::class, 'customMadeJewelry'])->name('custom.made.jewelry');
 Route::get('/our-services', [HomeController::class, 'ourServices'])->name('our.services');
 Route::get('/casting', [HomeController::class, 'casting'])->name('casting');

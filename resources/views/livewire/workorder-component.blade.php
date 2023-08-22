@@ -221,17 +221,17 @@
                                     <td>{{ $item->process->name ?? '' }}</td>
                                     <td>{{ $item->start_date ?? '' }}</td>
                                     <td>{{ $item->end_date ?? '' }}</td>
-                                    <td>{{ $item->status->name ?? 'Open' }}
-                                        {{-- ({{$item->approvalStatus->name ?? "Upload Pending"}}) --}}
+                                    <td>{{ $item->status->name ?? 'Open' }} 
+                                        <span style="font-size: 10px;">({{$item->approvalStatus->name ?? "Upload Pending"}})</span>                                       
                                     </td>
                                     <td>
                                         @if ($role == 1 || $role == 4)
-                                            <button class="btn text-success p-0" wire:click="edit({{ $item->id }})"
+                                            <button class="btn text-success p-0" wire:click="edit({{ $item->id }},'edit')"
                                                 data-toggle="modal" data-target="#exampleModal">
                                                 <i class="fas fa-user-edit"></i>
                                             </button>
                                         @endif
-                                        <button wire:click="view('disabled',{{ $item->id }})"
+                                        <button wire:click="view('disabled',{{ $item->id }},'view')"
                                             class="btn text-primary p-1" data-toggle="modal"
                                             data-target="#exampleModal">
                                             <i class="fas fa-eye"></i>
@@ -243,7 +243,7 @@
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         @endif
-                                        @if ($role == 3)
+                                        @if ($role == 3 && (!isset($item->upload) || $item->upload->approval_status_id==4))
                                             <button class="btn text-danger p-0" data-toggle="modal"
                                                 data-target="#exampleModal"
                                                 wire:click="uploadShow({{ $item->id }},'upload')">
@@ -276,7 +276,7 @@
                     </button>
                 </div>
                 <div class="modal-body  px-4">
-                    @if ($disabled)
+                    @if ($action=="view" && $workorder)
                         <div class="container" style="color:#000">
                             <article class="card">
                                 <header class="card-header">
@@ -301,23 +301,22 @@
                                     <article class="card">
                                         <div class="card-body">
                                             <div class="row">
-
-
-                                                <div class="col-lg-10">
+                                                <div class="col-lg-12">
                                                     <h5><b>Title :</b>{{ $workorder->title }}</h5>
                                                     <hr>
                                                     <p>
                                                         <b>Customer Requirement :</b> {{ $workorder->info }}
                                                     </p>
                                                 </div>
-                                                <div class="col-lg-2">
-                                                    <h6>Ref Image</h6>
-                                                    <a href="{{ asset('storage/' . $workorder->image) }}"
-                                                        target="_blank" rel="noopener noreferrer">
-                                                        <img style="width: 100%; float: right;"
-                                                            src="{{ asset('storage/' . $workorder->image) }}">
-                                                    </a>
-                                                </div>
+                                              
+                                                        <div class="col-12">
+                                                            <p><b>Ref Images : </b></p>
+                                                        </div>
+                                                        @foreach ($ref_images as $ref_image)                                            
+                                                        <div class="col-lg-2">                                            
+                                                            <img style="width:100%" src="{{asset('storage/'.$ref_image->url)}}" alt="">
+                                                        </div>
+                                                        @endforeach
                                             </div>
 
                                         </div>
@@ -553,6 +552,7 @@
                     @elseif($delete != 'delete' && $action != 'upload')
                         <div class="card p-2">
                             <div class="row pb-3 ">
+                                @if($role_id!=2)
                                 <div class="col-lg-3">
                                     <label for="floatingInput" class="my-0"
                                         style="font-weight: 600">Customer</label>
@@ -579,6 +579,7 @@
                                         <span style="color:red">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                @endif
                                 <div class="col-lg-3">
                                     <label for="floatingInput" class="my-0" style="font-weight: 600">PO
                                         Number</label>
@@ -597,6 +598,16 @@
                                         <span style="color:red">{{ $message }}</span>
                                     @enderror
                                 </div>
+                                <div class="col-lg-3">
+                                    <label for="floatingInput" class="my-0" style="font-weight: 600">Estimated
+                                        Delivery Date</label>
+                                    <input type="date" placeholder="Estimated Delivery Date" class="form-control"
+                                        {{ $disabled }} wire:model="end_date">
+                                    @error('end_date')
+                                        <span style="color:red">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                @if($role_id!=2)
                                 <div class="col-lg-3">
                                     <label for="floatingInput" class="my-0"
                                         style="font-weight: 600">Process</label>
@@ -624,103 +635,267 @@
                                             'table_search_column' => 'name',
                                             'name' => 'employee_id',
                                             'table_default_value' => $employee_id,
+                                            'where_con' => $process_id,
                                         ],
-                                        key('employee_id' . $employee_id)
+                                        key('employee_id' . $employee_id.$process_id)
                                     )
                                     @error('employee_id')
                                         <span style="color:red">{{ $message }}</span>
                                     @enderror
                                 </div>
-                                <div class="col-lg-3">
-                                    <label for="floatingInput" class="my-0" style="font-weight: 600">Estimated
-                                        Delivery Date</label>
-                                    <input type="date" placeholder="Estimated Delivery Date" class="form-control"
-                                        {{ $disabled }} wire:model="end_date">
-                                    @error('end_date')
-                                        <span style="color:red">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                                @endif
+                               
 
-                                <div class="col-lg-3">
-                                    <label for="floatingInput" class="my-0" style="font-weight: 600">Ref
-                                        Image</label>
-                                    <input type="file" placeholder="Ref Image" class="form-control"
-                                        {{ $disabled }} wire:model="image">
-                                    @error('image')
-                                        <span style="color:red">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                                @if($role_id!=2)
                                 <div class="col-lg-3">
                                     <label for="floatingInput" class="my-0" style="font-weight: 600">Start
                                         Date</label>
                                     <input type="date" placeholder="Start Date" class="form-control"
-                                        {{ $disabled }} wire:model="start_date">
+                                         wire:model="start_date">
                                     @error('start_date')
                                         <span style="color:red">{{ $message }}</span>
                                     @enderror
                                 </div>
-                                <div class="col-lg-3">
-                                    <label for="floatingInput" class="my-0" style="font-weight: 600">Status</label>
-                                    <input type="text" placeholder="Status" class="form-control" disabled
-                                        wire:model="status_text">
-                                </div>
-                                <div class="col-lg-3">
-                                    <label for="floatingInput" class="my-0" style="font-weight: 600">Approval
-                                        Status</label>
-                                    <input type="text" placeholder="Approval Status" class="form-control" disabled
-                                        wire:model="approval_status_text">
-                                </div>
-                                <div class="col-lg-9">
-                                    <div class="row">
-
-                                        <div class="col-lg-12">
-                                            <label for="floatingInput" class="my-0"
-                                                style="font-weight: 600">Title</label>
-                                            <input type="text" placeholder="Title" class="form-control" disabled
-                                                wire:model="title">
-                                            @error('title')
-                                                <span style="color:red">{{ $message }}</span>
-                                            @enderror
+                                @endif
+                                @if(!$workorder_id)
+                                <div class="row">
+                                    <div class="col-lg-9">
+                                        <div class="row">
+    
+                                            <div class="col-lg-12">
+                                                <label for="floatingInput" class="my-0"
+                                                    style="font-weight: 600">Title</label>
+                                                <input type="text" placeholder="Title" class="form-control" {{$disabled}}
+                                                    wire:model="title">
+                                                @error('title')
+                                                    <span style="color:red">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                            <div class="col-lg-12">
+                                                <label for="floatingInput" class="my-0"
+                                                    style="font-weight: 600">Custome Requirement</label>
+                                                <textarea wire:model="info" cols="30" rows="5" class="form-control" {{$disabled}}></textarea>
+                                                @error('info')
+                                                    <span style="color:red">{{ $message }}</span>
+                                                @enderror
+                                            </div>
                                         </div>
-                                        <div class="col-lg-12">
-                                            <label for="floatingInput" class="my-0"
-                                                style="font-weight: 600">Custome Requirement</label>
-                                            <textarea wire:model="info" cols="30" rows="5" class="form-control" disabled></textarea>
-                                            @error('info')
-                                                <span style="color:red">{{ $message }}</span>
-                                            @enderror
-                                        </div>
+    
                                     </div>
-
-                                </div>
-                                <div class="col-lg-3">
-
-                                    @if ($image)
-                                        Photo Preview:
-                                        <img style="width: 200px;" src="{{ $image->temporaryUrl() }}">
-                                    @else
-                                        @if ($image_edit)
-                                            <img style="width: 200px;" src="{{ asset('storage/' . $image_edit) }}">
+                                    <div class="col-lg-3">
+                                            <label for="floatingInput" class="my-0" style="font-weight: 600">Ref
+                                                Image</label>
+                                            <input type="file" placeholder="Ref Image" class="form-control"
+                                                {{ $disabled }} wire:model="image">
+                                            @error('image')
+                                                <span style="color:red">{{ $message }}</span>
+                                            @enderror
+                                            <br>
+                                        @if ($image)
+                                            <img style="width: 200px;" src="{{ $image->temporaryUrl() }}">
+                                        @else
+                                            @if ($image_edit)
+                                                <img style="width: 200px;" src="{{ asset('storage/' . $image_edit) }}">
+                                            @endif
                                         @endif
-                                    @endif
-
+    
+                                    </div>
                                 </div>
+                                @else
+                                <div class="px-2">
+                                    
+                                    <b>
+                                        Title : {{$title}}
+                                    </b>
+                                    
+                                    <p>
+                                        <b>Customer Requirement : </b>
+                                        {{$info}}
+                                    </p>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <p><b>Ref Images : </b></p>
+                                            </div>
+                                            @foreach ($ref_images as $ref_image)                                            
+                                            <div class="col-lg-2">                                            
+                                                <img style="width:100%" src="{{asset('storage/'.$ref_image->url)}}" alt="">
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                </div>
+                               
+                                @endif
                             </div>
                         </div>
                     @elseif($action == 'upload')
                         <div class="container" style="color:#000">
                             <article class="card">
-                                <header class="card-header">
-                                    <h6>Order ID: {{ $workorder->job_id }}</h6>
-                                </header>
+                                <div class="container" style="color:#000">
+                                    <article class="card">
+                                        <header class="card-header">
+                                            <h6>Order ID: {{ $workorder->job_id }}</h6>
+                                        </header>
+                                        <div class="card-body" style="padding-top: 0px;">
+                                            <div class="track">
+                                                <div class="step active"> <span class="icon"> <i class="fa fa-check"></i>
+                                                    </span>
+                                                    <span class="text">Order confirmed</span>
+                                                </div>
+                                                <div class="step @if($workorder->process_id>=2) active @endif"> <span class="icon"> <i class="fa fa-cog"></i>
+                                                    </span>
+                                                    <span class="text">
+                                                        Design</span>
+                                                </div>
+                                                <div class="step @if($workorder->process_id>=3) active @endif"> <span class="icon"> <i class="fa fa-users"></i>
+                                                    </span> <span class="text"> Cad </span> </div>
+                                                <div class="step @if($workorder->process_id>=3 || $workorder->is_closed==1) active @endif"> <span class="icon"> <i class="fa fa-box"></i>
+                                                    </span> <span class="text">Production</span> </div>
+                                            </div>
+                                            <article class="card">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-lg-12">
+                                                            <h5><b>Title :</b>{{ $workorder->title }}</h5>
+                                                            <hr>
+                                                            <p>
+                                                                <b>Customer Requirement :</b> {{ $workorder->info }}
+                                                            </p>
+                                                        </div>
+                                                      
+                                                                <div class="col-12">
+                                                                    <p><b>Ref Images : </b></p>
+                                                                </div>
+                                                                @foreach ($ref_images as $ref_image)                                            
+                                                                <div class="col-lg-2">                                            
+                                                                    <img style="width:100%" src="{{asset('storage/'.$ref_image->url)}}" alt="">
+                                                                </div>
+                                                                @endforeach
+                                                    </div>
+        
+                                                </div>
+                                            </article>
+                                            @if ($workorder->upload)
+                                                @if (($role == 2 && $workorder->upload->approval_status_id == 2) || $role == 1 || $role == 3 || $role == 4)
+                                                    <article>
+                                                        @php
+                                                            $ctr = count($workorder->uploads);
+                                                        @endphp
+                                                        @foreach ($workorder->uploads as $upload)
+                                                            @if ($role == 2 && $ctr < count($workorder->uploads))
+                                                                @php
+                                                                    continue;
+                                                                @endphp
+                                                            @endif
+                                                            <div class="card p-2">
+                                                                <div class="row">
+                                                                    @foreach ($upload->images as $item)
+                                                                        <div class="col-lg-2">
+                                                                            <div
+                                                                                style="display: flex; justify-content: space-between">
+                                                                                <b>Image {{ $loop->iteration }}</b>
+                                                                                <button class="btn text-danger"
+                                                                                    wire:click="deleteImg({{ $item->id }},{{ $workorder->id }})">
+                                                                                    <i class="fas fa-trash-alt"></i></button>
+                                                                            </div>
+        
+                                                                            <a href="{{ asset('storage/' . $item->image) }}"
+                                                                                target="_blank" rel="noopener noreferrer">
+                                                                                <img style="width: 100%;"
+                                                                                    src="{{ asset('storage/' . $item->image) }}">
+                                                                            </a>
+        
+                                                                        </div>
+                                                                    @endforeach
+                                                                    @if ($ctr == count($workorder->uploads))
+                                                                        @if ($upload->for_customer_approval == false)
+                                                                            <div class="col-lg-12">
+                                                                                <h5>Comment :</h5>
+                                                                                <textarea wire:model="approval_comment" class="form-control"></textarea>
+                                                                                @error('approval_comment')
+                                                                                    <span
+                                                                                        style="color:red">{{ $message }}</span>
+                                                                                @enderror
+                                                                            </div>
+        
+                                                                            @if ($role_id != 3)
+                                                                                <div class="col-lg-3 mt-1">
+                                                                                    <select wire:model="approval_status_id"
+                                                                                        class="form-control">
+                                                                                        <option value="">Select</option>
+                                                                                        @foreach ($approved_statuses->whereNotIn('id', [1]) as $item)
+                                                                                            <option
+                                                                                                value="{{ $item->id }}">
+                                                                                                {{ $item->name }}</option>
+                                                                                        @endforeach
+                                                                                    </select>
+                                                                                </div>
+                                                                            @endif
+                                                                            <div class="col-lg-3 mt-1">
+                                                                                <button
+                                                                                    wire:click="approvalSend({{ $upload->id }})"
+                                                                                    class="btn btn-primary">Send</button>
+                                                                            </div>
+                                                                        @elseif($role_id == 4 || $role_id == 4)
+                                                                            <div class="col-lg-12"></div>
+                                                                            <div class="col-lg-3 mt-1">
+                                                                                <select wire:model="new_process_id"
+                                                                                    class="form-control">
+                                                                                    <option value="">Select</option>
+                                                                                    @foreach ($processes as $item)
+                                                                                        <option value="{{ $item->id }}">
+                                                                                            {{ $item->name }}</option>
+                                                                                    @endforeach
+                                                                                </select>
+                                                                            </div>
+                                                                            <div class="col-lg-3 mt-1">
+                                                                                <button
+                                                                                    wire:click="createNewProcess({{ $workorder->id }})"
+                                                                                    class="btn btn-primary">Send</button>
+                                                                            </div>
+                                                                        @endif
+                                                                    @endif
+                                                                    @foreach ($upload->comments as $comment)
+                                                                        <div class="col-lg-11 m-1"
+                                                                            style="background-color: rgb(220, 230, 220); border-radius: 5px;">
+                                                                            <span style="font-size:10px">
+                                                                                {{ $comment->commentBy->name ?? '' }}
+                                                                            </span>
+                                                                            <br>
+                                                                            {{ $comment->comment }}
+        
+                                                                        </div>
+                                                                    @endforeach
+                                                                    <hr>
+                                                                    @php
+                                                                        $ctr--;
+                                                                    @endphp
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </article>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    </article>
+                                </div>
                                 <div class="card-body" style="padding-top: 0px;">
-                                    <input wire:model="upload_images" type="file" multiple class="form-control">
+                                    <input wire:model="upload_images" type="file" multiple class="form-control" accept="image/png, image/gif, image/jpeg">
                                     <div>
                                         @if (count($upload_images) > 0)
                                             @foreach ($upload_images as $item)
                                                 <img style="width: 200px" src="{{ $item->temporaryUrl() }}">
                                             @endforeach
                                         @endif
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <h5>Comment :</h5>
+                                            <textarea wire:model="approval_comment" class="form-control"></textarea>
+                                            @error('approval_comment')
+                                                <span
+                                                    style="color:red">{{ $message }}</span>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
 
@@ -732,23 +907,25 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary close-btn" data-dismiss="modal">Close</button>
-                    @if (!$disabled)
+                        @if($action!='view')
                         @if ($workorder_id && $delete == 'delete')
                             <button type="button" wire:click.prevent="delete()" data-dismiss="modal"
                                 class="btn btn-danger close-modal">Delete</button>
                         @elseif($workorder_id)
-                            @if ($action)
-                                <button type="button" wire:click.prevent="upload()"
-                                    class="btn btn-primary close-modal">upload</button>
+                            @if ($action=='edit')
+                            <button type="button" wire:click.prevent="update()"
+                            class="btn btn-primary close-modal">Update</button>
                             @else
-                                <button type="button" wire:click.prevent="update()"
-                                    class="btn btn-primary close-modal">Update</button>
+                            <button type="button" wire:click.prevent="upload()"
+                                    class="btn btn-primary close-modal">upload</button>
+                               
                             @endif
                         @else
                             <button type="button" wire:click.prevent="store()"
                                 class="btn btn-primary close-modal">Save</button>
                         @endif
-                    @endif
+                        @endif
+                    
                 </div>
             </div>
         </div>
